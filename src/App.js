@@ -19,6 +19,7 @@ function App() {
       const user = result.user;
       setUser(user);
       console.log('google');
+      console.log(user);
     })
     .catch(error=>{
       console.error('error',error);
@@ -31,6 +32,7 @@ function App() {
       const user = result.user;
       setUser(user);
       console.log('Github');
+      console.log(user);
     })
     .catch(error=>{
       console.error(error);
@@ -51,7 +53,7 @@ function App() {
     <div className="App">
 
       {
-        user.email? <button onClick={handleSignOut}>Sign Out</button>:
+        user.uid? <button onClick={handleSignOut}>Sign Out</button>:
         <>
         <button onClick={handleGoogleSignIn}>Google Sign In</button>
         <button onClick={handleGithubSignIn}>GitHub Sign In</button>
