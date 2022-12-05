@@ -1,72 +1,141 @@
 import './App.css';
 import app from './firebase.init';
-import {getAuth, GithubAuthProvider, GoogleAuthProvider, signInWithPopup, signOut} from 'firebase/auth';
+import { createUserWithEmailAndPassword, getAuth, GithubAuthProvider, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { useState } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+
 
 // Initialize Firebase Authentication and get a reference to the service
 
 const auth = getAuth(app);
 function App() {
 
-  const [user, setUser]= useState({});
+  const [user, setUser] = useState({});
   const googleProvider = new GoogleAuthProvider();
   const githubProvider = new GithubAuthProvider();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [validated, setValidated] = useState(false);
+  const [error, setError] = useState('');
 
 
-  const handleGoogleSignIn =()=>{ 
-    signInWithPopup(auth,googleProvider)
-    .then(result=>{
-      const user = result.user;
-      setUser(user);
-      console.log('google');
-      console.log(user);
-    })
-    .catch(error=>{
-      console.error('error',error);
-    })
+
+  const handleGoogleSignIn = () => {
+    signInWithPopup(auth, googleProvider)
+      .then(result => {
+        const user = result.user;
+        setUser(user);
+        console.log('google');
+        console.log(user);
+      })
+      .catch(error => {
+        console.error('error', error);
+      })
   }
 
-  const handleGithubSignIn=()=>{
-    signInWithPopup(auth,githubProvider)
-    .then(result=>{
-      const user = result.user;
-      setUser(user);
-      console.log('Github');
-      console.log(user);
-    })
-    .catch(error=>{
-      console.error(error);
-    })
+  const handleGithubSignIn = () => {
+    signInWithPopup(auth, githubProvider)
+      .then(result => {
+        const user = result.user;
+        setUser(user);
+        console.log('Github');
+        console.log(user);
+      })
+      .catch(error => {
+        console.error(error);
+      })
   }
 
-  const handleSignOut =()=>{
+  const handleSignOut = () => {
     signOut(auth)
-    .then(()=>{
-      setUser({});
-    })
-    .catch(error=>{
-      setUser({});
-    })
+      .then(() => {
+        setUser({});
+      })
+      .catch(error => {
+        setUser({});
+      })
+  }
+
+  const handleEmailChange = (event) => {
+    setEmail(event.target.value);
+  }
+  const handlePasswordChange = (event) => {
+    setPassword(event.target.value);
+  }
+
+
+
+  const handleFormSubmit = event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+
+    if (form.checkValidity() === false) {
+      event.stopPropagation();
+      return;
+    }
+    if(!/(?=.*?[#?!@$%^&*-])/.test(password)){
+      setError('Special Char Required!');
+      return;
+    }
+    setValidated(true);
+    setError('');
+
+    
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(result => {
+        const user = result.user;
+        console.log(user);
+      })
+      .catch(error => {
+        console.error(error);
+      })
+    event.preventDefault();
   }
 
   return (
-    <div className="App">
-      <form>
-        <input type="email" name="" id="" />
-        <input type="password" name="" id="" />
-      </form>
+    <div className="">
+
+      <div className="registration w-50 mx-auto mt-1">
+        <h2 className='text-primary p-4'>Please Register</h2>
+        <Form noValidate validated={validated} onSubmit={handleFormSubmit} className='p-4'>
+          <Form.Group className="mb-3" controlId="formBasicEmail">
+            <Form.Label>Email address</Form.Label>
+            <Form.Control onBlur={handleEmailChange} type="email" placeholder="Enter email" required />
+            <Form.Control.Feedback type="invalid">
+              Please provide a valid Email.
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="formBasicPassword">
+            <Form.Label>Password</Form.Label>
+            <Form.Control onBlur={handlePasswordChange} type="password" placeholder="Password" required />
+            <Form.Control.Feedback type="invalid">
+              Please provide a valid Password.
+            </Form.Control.Feedback>
+          </Form.Group>
+          
+          <p className='text-danger'>{error}</p>
+          <Button variant="primary" type="submit">
+            Submit
+          </Button>
+        </Form>
+      </div>
 
       {
-        user.uid? <button onClick={handleSignOut}>Sign Out</button>:
-        <>
-        <button onClick={handleGoogleSignIn}>Google Sign In</button>
-        <button onClick={handleGithubSignIn}>GitHub Sign In</button>
-        </>
+        user.uid ? <button className='w-50 mx-auto mt-1' onClick={handleSignOut}>Sign Out</button> :
+          <div className='w-50 mx-auto mt-1'>
+            <button onClick={handleGoogleSignIn}>Google Sign In</button>
+            <button onClick={handleGithubSignIn}>GitHub Sign In</button>
+          </div>
       }
-      
-      <h2>Name: {user.displayName}</h2>
-      <h2>Email: {user.email}</h2>
-      <img src={user.photoURL} alt="" />
+
+      <div className='w-50 mx-auto mt-1'>
+        <h4>Name: {user.displayName}</h4>
+        <p>Email: {user.email}</p>
+        <img src={user.photoURL} alt="" />
+      </div>
     </div>
   );
 }
