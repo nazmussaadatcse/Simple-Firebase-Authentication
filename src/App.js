@@ -1,6 +1,6 @@
 import './App.css';
 import app from './firebase.init';
-import { createUserWithEmailAndPassword, getAuth, GithubAuthProvider, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, getAuth, GithubAuthProvider, GoogleAuthProvider, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
 import { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
@@ -92,7 +92,7 @@ function App() {
     setError('');
     //set error empty if input validated
 
-//check registered or not
+//registered users
     if (registered) {
       signInWithEmailAndPassword(auth,email,password)
       .then(result=>{
@@ -104,7 +104,7 @@ function App() {
         setError(error.message);
       })
     }
-    //if not registered then register
+    //create user or register
     else {
       createUserWithEmailAndPassword(auth, email, password)
         .then(result => {
@@ -112,6 +112,7 @@ function App() {
           console.log(user);
           setEmail('');
           setPassword('');
+          verifyEmail();
         })
         .catch(error => {
           console.error(error);
@@ -120,6 +121,14 @@ function App() {
     }
     event.preventDefault();
     //form submit no reload
+  }
+
+  //verify email
+  const verifyEmail =()=>{
+    sendEmailVerification(auth.currentUser)
+    .then(()=>{
+      console.log('Email verification sent!');
+    })
   }
 
   //checkbox register conditions
