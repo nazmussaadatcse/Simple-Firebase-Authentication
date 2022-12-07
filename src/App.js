@@ -1,6 +1,6 @@
 import './App.css';
 import app from './firebase.init';
-import { createUserWithEmailAndPassword, getAuth, GithubAuthProvider, GoogleAuthProvider, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, getAuth, GithubAuthProvider, GoogleAuthProvider, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
 import { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
@@ -136,6 +136,17 @@ function App() {
     setRegistered(event.target.checked)
   }
 
+  //rest password
+  const handlePasswordReset=()=>{
+    sendPasswordResetEmail(auth,email)
+    .then(()=>{
+      console.log('email sent!!');
+    })
+    .catch(()=>{
+      console.error(error);
+    })
+  }
+
   return (
     <div className="">
 
@@ -163,6 +174,8 @@ function App() {
           </Form.Group>
 
           <p className='text-danger'>{error}</p>
+          <Button onClick={handlePasswordReset} variant="link">Forget Password</Button>
+          <br/>
           <Button variant="primary" type="submit">
             {registered ? 'Login' : 'Register'}
           </Button>
