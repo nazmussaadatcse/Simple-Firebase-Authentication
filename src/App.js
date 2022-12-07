@@ -1,6 +1,6 @@
 import './App.css';
 import app from './firebase.init';
-import { createUserWithEmailAndPassword, getAuth, GithubAuthProvider, GoogleAuthProvider, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, getAuth, GithubAuthProvider, GoogleAuthProvider, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
 import { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
@@ -15,6 +15,7 @@ function App() {
   const [user, setUser] = useState({});
   const googleProvider = new GoogleAuthProvider();
   const githubProvider = new GithubAuthProvider();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validated, setValidated] = useState(false);
@@ -22,7 +23,7 @@ function App() {
   const [registered, setRegistered] = useState(false);
 
 
-//signIn with google
+  //signIn with google
   const handleGoogleSignIn = () => {
     signInWithPopup(auth, googleProvider)
       .then(result => {
@@ -35,7 +36,7 @@ function App() {
         console.error('error', error);
       })
   }
-//signIn with github
+  //signIn with github
 
   const handleGithubSignIn = () => {
     signInWithPopup(auth, githubProvider)
@@ -50,7 +51,7 @@ function App() {
       })
   }
 
-//signOut
+  //signOut
 
   const handleSignOut = () => {
     signOut(auth)
@@ -61,7 +62,12 @@ function App() {
         setUser({});
       })
   }
-//handle input email
+
+  //handle input name
+  const handleNameChange = (event) => {
+    setName(event.target.value);
+  }
+  //handle input email
   const handleEmailChange = (event) => {
     setEmail(event.target.value);
   }
@@ -72,7 +78,7 @@ function App() {
   }
 
 
-//handle form submit
+  //handle form submit
 
   const handleFormSubmit = event => {
     event.preventDefault();
@@ -92,17 +98,17 @@ function App() {
     setError('');
     //set error empty if input validated
 
-//registered users
+    //registered users
     if (registered) {
-      signInWithEmailAndPassword(auth,email,password)
-      .then(result=>{
-        const user = result.user;
-        console.log(user);
-      })
-      .catch(error=>{
-        console.error(error);
-        setError(error.message);
-      })
+      signInWithEmailAndPassword(auth, email, password)
+        .then(result => {
+          const user = result.user;
+          console.log(user);
+        })
+        .catch(error => {
+          console.error(error);
+          setError(error.message);
+        })
     }
     //create user or register
     else {
@@ -113,6 +119,7 @@ function App() {
           setEmail('');
           setPassword('');
           verifyEmail();
+          setUserName();
         })
         .catch(error => {
           console.error(error);
@@ -124,10 +131,23 @@ function App() {
   }
 
   //verify email
-  const verifyEmail =()=>{
+  const verifyEmail = () => {
     sendEmailVerification(auth.currentUser)
+      .then(() => {
+        console.log('Email verification sent!');
+      })
+  }
+  
+  //update profile
+  const setUserName =()=>{
+    updateProfile(auth.currentUser,{
+      displayName:name
+    })
     .then(()=>{
-      console.log('Email verification sent!');
+      console.log('updating name');
+    })
+    .catch(error=>{
+      setError(error.message);
     })
   }
 
@@ -137,14 +157,14 @@ function App() {
   }
 
   //rest password
-  const handlePasswordReset=()=>{
-    sendPasswordResetEmail(auth,email)
-    .then(()=>{
-      console.log('email sent!!');
-    })
-    .catch(()=>{
-      console.error(error);
-    })
+  const handlePasswordReset = () => {
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        console.log('email sent!!');
+      })
+      .catch(() => {
+        console.error(error);
+      })
   }
 
   return (
@@ -153,6 +173,14 @@ function App() {
       <div className="registration w-50 mx-auto mt-1">
         <h2 className='text-primary p-4'>Please {registered ? 'Login!' : 'Register!'}</h2>
         <Form noValidate validated={validated} onSubmit={handleFormSubmit} className='p-4'>
+          {!registered && <Form.Group className="mb-3" controlId="formBasicEmail">
+            <Form.Label>Your Name</Form.Label>
+            <Form.Control onBlur={handleNameChange} type="text" placeholder="Your Name" required />
+            <Form.Control.Feedback type="invalid">
+              Please provide your name.
+            </Form.Control.Feedback>
+          </Form.Group>}
+
           <Form.Group className="mb-3" controlId="formBasicEmail">
             <Form.Label>Email address</Form.Label>
             <Form.Control onBlur={handleEmailChange} type="email" placeholder="Enter email" required />
@@ -175,7 +203,7 @@ function App() {
 
           <p className='text-danger'>{error}</p>
           <Button onClick={handlePasswordReset} variant="link">Forget Password</Button>
-          <br/>
+          <br />
           <Button variant="primary" type="submit">
             {registered ? 'Login' : 'Register'}
           </Button>
